@@ -49,8 +49,8 @@
 
         <Button
             android:id="@+id/button2"
-            android:layout_width="152dp"
-            android:layout_height="121dp"
+            android:layout_width="115dp"
+            android:layout_height="86dp"
             android:text="Button" />
     </FrameLayout>
 

@@ -29,7 +29,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.49" />
 
-    <EditText
+    <TextView
         android:id="@+id/remainingtime"
         android:text="15:00"
         android:gravity="center"
@@ -43,7 +43,6 @@
         android:layout_marginBottom="8dp"
         android:background="#000080"
         android:ems="10"
-        android:inputType="time"
         android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -52,7 +51,7 @@
         app:layout_constraintTop_toTopOf="@+id/videoView"
         app:layout_constraintVertical_bias="0.191" />
 
-    <EditText
+    <TextView
         android:id="@+id/altitude"
         android:text="5m"
         android:gravity="center"
@@ -63,7 +62,6 @@
         android:layout_marginTop="8dp"
         android:background="#000080"
         android:ems="10"
-        android:inputType="number"
         android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="@+id/videoView"
         app:layout_constraintEnd_toEndOf="@+id/videoView"
@@ -72,7 +70,7 @@
         app:layout_constraintTop_toTopOf="@+id/videoView"
         app:layout_constraintVertical_bias="0.969" />
 
-    <EditText
+    <TextView
         android:id="@+id/temperature"
         android:text="20 C"
         android:gravity="center"

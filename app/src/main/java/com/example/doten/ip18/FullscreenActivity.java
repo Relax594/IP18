@@ -10,6 +10,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -31,7 +32,10 @@ public class FullscreenActivity extends AppCompatActivity {
             TextView remainingTimeTextView = (TextView)findViewById(R.id.remainingtime);
 
             public void onTick(long millisUntilFinished) {
-                remainingTimeTextView.setText(String.valueOf(millisUntilFinished / 60000));
+                remainingTimeTextView.setText(""+String.format("%d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
+                        TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))));
             }
 
             public void onFinish() {

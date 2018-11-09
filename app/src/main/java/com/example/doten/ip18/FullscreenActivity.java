@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit;
 public class FullscreenActivity extends AppCompatActivity {
 
     // Get Controls from Layout
-    TextView remainingFlightTimeTextView = (TextView)findViewById(R.id.remainingtime);
-    TextView altitudeTextView = (TextView)findViewById(R.id.altitude);
-    TextView temperaturTextView = (TextView)findViewById(R.id.temperature);
+    TextView remainingFlightTimeTextView;
+    TextView altitudeTextView;
+    TextView temperaturTextView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -28,6 +28,11 @@ public class FullscreenActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_fullscreen);
+
+        remainingFlightTimeTextView = (TextView)findViewById(R.id.remainingtime);
+        altitudeTextView = (TextView)findViewById(R.id.altitude);
+        temperaturTextView = (TextView)findViewById(R.id.temperature);
+
         SetDataRefreshTimer();
     }
 

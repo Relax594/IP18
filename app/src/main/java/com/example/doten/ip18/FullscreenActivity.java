@@ -15,6 +15,10 @@ import java.util.concurrent.TimeUnit;
 
 public class FullscreenActivity extends AppCompatActivity {
 
+    // Get Controls from Layout
+    TextView remainingFlightTimeTextView = (TextView)findViewById(R.id.remainingtime);
+    TextView altitudeTextView = (TextView)findViewById(R.id.altitude);
+    TextView temperaturTextView = (TextView)findViewById(R.id.temperature);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -24,27 +28,43 @@ public class FullscreenActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_fullscreen);
-        SetRemainingTime();
+        SetDataRefreshTimer();
     }
 
-    public void SetRemainingTime() {
+    public void SetDataRefreshTimer() {
         new CountDownTimer(300000, 1000) {
-            TextView remainingTimeTextView = (TextView)findViewById(R.id.remainingtime);
 
             public void onTick(long millisUntilFinished) {
-                remainingTimeTextView.setText(""+String.format("%d:%02d",
+                remainingFlightTimeTextView.setText(""+String.format("%d:%02d",
                         TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
                         TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
                                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))));
+
+                UpdateAltitude();
+                UpdateTemperature();
+                UpdateRemainingFlightTime();
             }
 
             public void onFinish() {
-                remainingTimeTextView.setText("Time expired");
+                remainingFlightTimeTextView.setText("Time expired");
             }
         }.start();
     }
 
+    public void UpdateRemainingFlightTime() {
+        // Get Value From Backend
+        //remainingFlightTimeTextView.setText(valueFromBackEnd);
+    }
 
+    public void UpdateAltitude() {
+        // Get Value From Backend
+        //altitudeTextView.setText(valueFromBackend);
+    }
+
+    public void UpdateTemperature() {
+        // Get Value From Backend
+        //temperaturTextView.setText(valueFromBackend);
+    }
 
     public void ButtonSettings_onClick(View view) {
 

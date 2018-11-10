@@ -5,6 +5,16 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_settings">Settings</string>
 
+    <string name="pref_flightTime_title">Remaining Flight Time</string>
+    <string name="pref_flightTime_key">remaining_flight_time</string>
+
+    <string name="pref_altitude_title">Altitude</string>
+    <string name="pref_altitude_key">altitude</string>
+
+    <string name="pref_temperature_title">Temperature</string>
+    <string name="pref_temperature_key">temperature</string>
+
+
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->

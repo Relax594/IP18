@@ -1,13 +1,17 @@
 package com.example.doten.ip18;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +23,7 @@ public class FullscreenActivity extends AppCompatActivity {
     TextView remainingFlightTimeTextView;
     TextView altitudeTextView;
     TextView temperaturTextView;
+    SharedPreferences sPrefs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -32,6 +37,7 @@ public class FullscreenActivity extends AppCompatActivity {
         remainingFlightTimeTextView = (TextView)findViewById(R.id.remainingtime);
         altitudeTextView = (TextView)findViewById(R.id.altitude);
         temperaturTextView = (TextView)findViewById(R.id.temperature);
+        sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         SetDataRefreshTimer();
     }
@@ -57,23 +63,37 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void UpdateRemainingFlightTime() {
+        // Read Settings
+        String prefFlightTimeKey = getString(R.string.pref_flightTime_key);
+
+        if (sPrefs.getBoolean(prefFlightTimeKey, true)) remainingFlightTimeTextView.setVisibility(View.VISIBLE);
+        else remainingFlightTimeTextView.setVisibility(View.GONE);
+
         // Get Value From Backend
         //remainingFlightTimeTextView.setText(valueFromBackEnd);
     }
 
     public void UpdateAltitude() {
+        String prefAltitudeKey = getString(R.string.pref_altitude_key);
+
+        if (sPrefs.getBoolean(prefAltitudeKey, true)) altitudeTextView.setVisibility(View.VISIBLE);
+        else altitudeTextView.setVisibility(View.GONE);
+
         // Get Value From Backend
         //altitudeTextView.setText(valueFromBackend);
     }
 
     public void UpdateTemperature() {
+        String prefTemperatureKey = getString(R.string.pref_temperature_key);
+
+        if (sPrefs.getBoolean(prefTemperatureKey, true)) temperaturTextView.setVisibility(View.VISIBLE);
+        else temperaturTextView.setVisibility(View.GONE);
+
         // Get Value From Backend
         //temperaturTextView.setText(valueFromBackend);
     }
 
     public void ButtonSettings_onClick(View view) {
-
-        Intent intent= new Intent(this,SettingsActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, SettingsActivity.class));
     }
 }

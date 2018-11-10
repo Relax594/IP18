@@ -2,21 +2,21 @@
 
     <SwitchPreference
         android:defaultValue="true"
-        android:key="remaining_flight_time"
+        android:key="@string/pref_flightTime_key"
 
-        android:title="Remaining Flight Time" />
-
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="temperature"
-
-        android:title="Temperature" />
+        android:title="@string/pref_flightTime_title" />
 
     <SwitchPreference
         android:defaultValue="true"
-        android:key="altitude"
+        android:key="@string/pref_temperature_key"
 
-        android:title="Altitude" />
+        android:title="@string/pref_temperature_title" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="@string/pref_altitude_key"
+
+        android:title="@string/pref_altitude_title" />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->

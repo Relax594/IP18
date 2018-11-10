@@ -42,6 +42,12 @@ public class FullscreenActivity extends AppCompatActivity {
         SetDataRefreshTimer();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ReloadOnSettingsChanged();
+    }
+
     public void SetDataRefreshTimer() {
         new CountDownTimer(300000, 1000) {
 
@@ -62,32 +68,39 @@ public class FullscreenActivity extends AppCompatActivity {
         }.start();
     }
 
-    public void UpdateRemainingFlightTime() {
-        // Read Settings
+
+    public void ReloadOnSettingsChanged() {
+        // Read Settings by Key
         String prefFlightTimeKey = getString(R.string.pref_flightTime_key);
+        String prefAltitudeKey = getString(R.string.pref_altitude_key);
+        String prefTemperatureKey = getString(R.string.pref_temperature_key);
 
         if (sPrefs.getBoolean(prefFlightTimeKey, true)) remainingFlightTimeTextView.setVisibility(View.VISIBLE);
         else remainingFlightTimeTextView.setVisibility(View.GONE);
+
+
+        if (sPrefs.getBoolean(prefAltitudeKey, true)) altitudeTextView.setVisibility(View.VISIBLE);
+        else altitudeTextView.setVisibility(View.GONE);
+
+
+
+        if (sPrefs.getBoolean(prefTemperatureKey, true)) temperaturTextView.setVisibility(View.VISIBLE);
+        else temperaturTextView.setVisibility(View.GONE);
+    }
+
+    public void UpdateRemainingFlightTime() {
 
         // Get Value From Backend
         //remainingFlightTimeTextView.setText(valueFromBackEnd);
     }
 
     public void UpdateAltitude() {
-        String prefAltitudeKey = getString(R.string.pref_altitude_key);
-
-        if (sPrefs.getBoolean(prefAltitudeKey, true)) altitudeTextView.setVisibility(View.VISIBLE);
-        else altitudeTextView.setVisibility(View.GONE);
 
         // Get Value From Backend
         //altitudeTextView.setText(valueFromBackend);
     }
 
     public void UpdateTemperature() {
-        String prefTemperatureKey = getString(R.string.pref_temperature_key);
-
-        if (sPrefs.getBoolean(prefTemperatureKey, true)) temperaturTextView.setVisibility(View.VISIBLE);
-        else temperaturTextView.setVisibility(View.GONE);
 
         // Get Value From Backend
         //temperaturTextView.setText(valueFromBackend);

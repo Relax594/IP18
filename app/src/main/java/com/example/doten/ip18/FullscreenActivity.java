@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -17,9 +18,8 @@ import android.widget.Toast;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import static com.example.doten.ip18.SensorData.UpdateAltitude;
-import static com.example.doten.ip18.SensorData.UpdateRemainingFlightTime;
-import static com.example.doten.ip18.SensorData.UpdateTemperature;
+import com.example.doten.ip18.MessageFetching;
+import com.example.doten.ip18.SensorData;
 
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -50,6 +50,15 @@ public class FullscreenActivity extends AppCompatActivity {
         // Update Data with Timer
         handler.postDelayed(runnable, 100);
         ValuateRemainingFlightTime();
+
+        //Erstelle Handler und starte MessageFetching
+        Handler handler = new Handler();
+        new Thread(new MessageFetching(this, handler)).start();
+    }
+
+    public void logSensorData(SensorData sensorData) {
+        Log.d("TEST", "content: " + sensorData.getContent());
+        Log.d("TEST", "target: " + sensorData.type.myTextView.id);
     }
 
     private void ValuateRemainingFlightTime() {
@@ -76,8 +85,8 @@ public class FullscreenActivity extends AppCompatActivity {
         public void run() {
 
             // Update Data from backend
-            altitudeTextView.setText(UpdateAltitude());
-            temperaturTextView.setText(UpdateTemperature());
+            //altitudeTextView.setText(UpdateAltitude());
+            //temperaturTextView.setText(UpdateTemperature());
             //remainingFlightTimeTextView.setText(UpdateRemainingFlightTime());
 
             // restart timer

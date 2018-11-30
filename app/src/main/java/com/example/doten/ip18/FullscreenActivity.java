@@ -53,16 +53,15 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void logSensorData(SensorData sensorData) {
         if (sensorData.type == SensorData.MessageType.HeartBeat && showHeartbeat) {
+            // show heartbeat message
             Toast.makeText(getApplicationContext(), "Heartbeat received", Toast.LENGTH_LONG).show();
             showHeartbeat = false;
+        } else {
+            // update textview based on data
+            TextView textViewToUpdate = findViewById(sensorData.type.myTextView.id);
+
+            if (textViewToUpdate != null) textViewToUpdate.setText(sensorData.getContent());
         }
-
-        Log.d("TEST", "content: " + sensorData.getContent());
-        Log.d("TEST", "target: " + sensorData.type.myTextView.id);
-
-        TextView textViewToUpdate = findViewById(sensorData.type.myTextView.id);
-
-        if (textViewToUpdate != null) textViewToUpdate.setText(sensorData.getContent());
     }
 
     @Override

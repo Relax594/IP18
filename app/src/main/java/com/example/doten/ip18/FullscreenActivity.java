@@ -30,9 +30,6 @@ public class FullscreenActivity extends AppCompatActivity {
     TextView temperatureTextView;
     SharedPreferences sPrefs;
 
-    // Set Timer to reload data every second
-    private Handler handler = new Handler();
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,12 +39,12 @@ public class FullscreenActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_fullscreen);
 
-        remainingFlightTimeTextView = (TextView)findViewById(R.id.remainingtime);
-        altitudeTextView = (TextView)findViewById(R.id.altitude);
-        temperatureTextView = (TextView)findViewById(R.id.temperature);
+        remainingFlightTimeTextView = findViewById(R.id.remainingtime);
+        altitudeTextView = findViewById(R.id.altitude);
+        temperatureTextView = findViewById(R.id.temperature);
         sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        //Erstelle Handler und starte MessageFetching
+        // create Handler and start MessageFetching
         Handler handler = new Handler();
         new Thread(new MessageFetching(this, handler)).start();
     }
@@ -60,11 +57,9 @@ public class FullscreenActivity extends AppCompatActivity {
         Log.d("TEST", "content: " + sensorData.getContent());
         Log.d("TEST", "target: " + sensorData.type.myTextView.id);
 
-        TextView textViewToUpdate = (TextView)findViewById(sensorData.type.myTextView.id);
+        TextView textViewToUpdate = findViewById(sensorData.type.myTextView.id);
 
-        if (textViewToUpdate != null) {
-            textViewToUpdate.setText(sensorData.getContent());
-        }
+        if (textViewToUpdate != null) textViewToUpdate.setText(sensorData.getContent());
     }
 
     @Override

@@ -30,6 +30,8 @@ public class FullscreenActivity extends AppCompatActivity {
     TextView temperatureTextView;
     SharedPreferences sPrefs;
 
+    boolean showHeartbeat = true;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,8 +52,9 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void logSensorData(SensorData sensorData) {
-        if (sensorData.type == SensorData.MessageType.HeartBeat) {
+        if (sensorData.type == SensorData.MessageType.HeartBeat && showHeartbeat) {
             Toast.makeText(getApplicationContext(), "Heartbeat received", Toast.LENGTH_LONG).show();
+            showHeartbeat = false;
         }
 
         Log.d("TEST", "content: " + sensorData.getContent());

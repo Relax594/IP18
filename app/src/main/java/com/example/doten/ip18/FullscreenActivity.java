@@ -27,7 +27,7 @@ public class FullscreenActivity extends AppCompatActivity {
     // Get Controls from Layout
     TextView remainingFlightTimeTextView;
     TextView altitudeTextView;
-    TextView temperaturTextView;
+    TextView temperatureTextView;
     SharedPreferences sPrefs;
 
     // Set Timer to reload data every second
@@ -44,12 +44,8 @@ public class FullscreenActivity extends AppCompatActivity {
 
         remainingFlightTimeTextView = (TextView)findViewById(R.id.remainingtime);
         altitudeTextView = (TextView)findViewById(R.id.altitude);
-        temperaturTextView = (TextView)findViewById(R.id.temperature);
+        temperatureTextView = (TextView)findViewById(R.id.temperature);
         sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        // Update Data with Timer
-        handler.postDelayed(runnable, 100);
-        ValuateRemainingFlightTime();
 
         //Erstelle Handler und starte MessageFetching
         Handler handler = new Handler();
@@ -57,42 +53,19 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void logSensorData(SensorData sensorData) {
+        if (sensorData.type == SensorData.MessageType.HeartBeat) {
+            Toast.makeText(getApplicationContext(), "Heartbeat received", Toast.LENGTH_LONG).show();
+        }
+
         Log.d("TEST", "content: " + sensorData.getContent());
         Log.d("TEST", "target: " + sensorData.type.myTextView.id);
-    }
 
-    private void ValuateRemainingFlightTime() {
+        TextView textViewToUpdate = (TextView)findViewById(sensorData.type.myTextView.id);
 
-        new CountDownTimer(300000, 1000) {
-
-            public void onTick(long millisUntilFinished) {
-                remainingFlightTimeTextView.setText(""+String.format("%d:%02d",
-                        TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
-                        TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))));
-
-
-            }
-
-            public void onFinish() {
-                remainingFlightTimeTextView.setText("Time expired");
-            }
-        }.start();
-    }
-
-    private Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-
-            // Update Data from backend
-            //altitudeTextView.setText(UpdateAltitude());
-            //temperaturTextView.setText(UpdateTemperature());
-            //remainingFlightTimeTextView.setText(UpdateRemainingFlightTime());
-
-            // restart timer
-            handler.postDelayed(this, 2000);
+        if (textViewToUpdate != null) {
+            textViewToUpdate.setText(sensorData.getContent());
         }
-    };
+    }
 
     @Override
     protected void onResume() {
@@ -112,8 +85,8 @@ public class FullscreenActivity extends AppCompatActivity {
         if (sPrefs.getBoolean(prefAltitudeKey, true)) altitudeTextView.setVisibility(View.VISIBLE);
         else altitudeTextView.setVisibility(View.GONE);
 
-        if (sPrefs.getBoolean(prefTemperatureKey, true)) temperaturTextView.setVisibility(View.VISIBLE);
-        else temperaturTextView.setVisibility(View.GONE);
+        if (sPrefs.getBoolean(prefTemperatureKey, true)) temperatureTextView.setVisibility(View.VISIBLE);
+        else temperatureTextView.setVisibility(View.GONE);
     }
 
 

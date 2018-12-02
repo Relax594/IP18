@@ -3,12 +3,9 @@ package com.example.doten.ip18;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -57,11 +54,28 @@ public class FullscreenActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Heartbeat received", Toast.LENGTH_LONG).show();
             showHeartbeat = false;
         } else {
+            CheckValue(sensorData.getContent(), sensorData.type);
+
             // update textview based on data
             TextView textViewToUpdate = findViewById(sensorData.type.myTextView.id);
 
             if (textViewToUpdate != null) textViewToUpdate.setText(sensorData.getContent());
         }
+    }
+
+    public void CheckValue(String newValue, SensorData.MessageType dataType) {
+        if (dataType == SensorData.MessageType.Temperature) {
+
+        } else if (dataType == SensorData.MessageType.Altitude) {
+
+        }
+
+        // TODO: check other dataType with value
+        // TODO: PlayNotification when value gets over limit
+    }
+
+    public void PlayNotification() {
+        // TODO: ADD NotificationManager with Settings
     }
 
     @Override

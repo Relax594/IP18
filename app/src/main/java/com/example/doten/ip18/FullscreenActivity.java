@@ -28,6 +28,7 @@ public class FullscreenActivity extends AppCompatActivity {
     SharedPreferences sPrefs;
 
     boolean showHeartbeat = true;
+    boolean doVibrate = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -89,6 +90,7 @@ public class FullscreenActivity extends AppCompatActivity {
         String prefFlightTimeKey = getString(R.string.pref_flightTime_key);
         String prefAltitudeKey = getString(R.string.pref_altitude_key);
         String prefTemperatureKey = getString(R.string.pref_temperature_key);
+        String prefVibrationKey = getString(R.string.pref_vibrate_key);
 
         if (sPrefs.getBoolean(prefFlightTimeKey, true)) remainingFlightTimeTextView.setVisibility(View.VISIBLE);
         else remainingFlightTimeTextView.setVisibility(View.GONE);
@@ -98,6 +100,8 @@ public class FullscreenActivity extends AppCompatActivity {
 
         if (sPrefs.getBoolean(prefTemperatureKey, true)) temperatureTextView.setVisibility(View.VISIBLE);
         else temperatureTextView.setVisibility(View.GONE);
+
+        doVibrate = sPrefs.getBoolean(prefVibrationKey, true);
     }
 
 

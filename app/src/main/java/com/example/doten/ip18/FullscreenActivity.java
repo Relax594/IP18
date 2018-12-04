@@ -26,6 +26,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     // Get Controls from Layout
     TextView remainingFlightTimeTextView;
+    TextView remainingBatteryTextView;
     TextView altitudeTextView;
     TextView temperatureTextView;
     SharedPreferences sPrefs;
@@ -41,10 +42,11 @@ public class FullscreenActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_fullscreen);
 
+        remainingBatteryTextView    = findViewById(R.id.remainingbatt);
         remainingFlightTimeTextView = findViewById(R.id.remainingtime);
-        altitudeTextView = findViewById(R.id.altitude);
-        temperatureTextView = findViewById(R.id.temperature);
-        sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        altitudeTextView            = findViewById(R.id.altitude);
+        temperatureTextView         = findViewById(R.id.temperature);
+        sPrefs                      = PreferenceManager.getDefaultSharedPreferences(this);
 
         // create Handler and start MessageFetching
         Handler handler = new Handler();

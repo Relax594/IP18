@@ -8,6 +8,7 @@ public class SensorData extends AppCompatActivity {
 
     public enum MyTextView {
         Nothing (0),
+        TextViewRemainingBatt (R.id.remainingbatt),
         TextViewRemainingTime (R.id.remainingtime),
         TextViewAltitude (R.id.altitude),
         TextViewTemperature (R.id.temperature),
@@ -20,9 +21,10 @@ public class SensorData extends AppCompatActivity {
 
     public enum MessageType {
         HeartBeat (0, MyTextView.Nothing),
-        RemainingTime (1, MyTextView.TextViewRemainingTime),
-        Altitude (2, MyTextView.TextViewAltitude),
-        Temperature (3, MyTextView.TextViewTemperature),
+        RemainingBatt (1, MyTextView.TextViewAltitude.TextViewRemainingBatt),
+        RemainingTime (2, MyTextView.TextViewRemainingTime),
+        Altitude (3, MyTextView.TextViewAltitude),
+        Temperature (4, MyTextView.TextViewTemperature),
         ;
 
         private final int id;

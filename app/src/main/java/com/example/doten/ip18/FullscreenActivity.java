@@ -94,11 +94,23 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void ReloadOnSettingsChanged() {
         // Read Settings by Key
+        String prefBatteryKey = getString(R.string.pref_battery_key);
         String prefFlightTimeKey = getString(R.string.pref_flightTime_key);
         String prefAltitudeKey = getString(R.string.pref_altitude_key);
         String prefTemperatureKey = getString(R.string.pref_temperature_key);
         String prefVibrationKey = getString(R.string.pref_vibrate_key);
 
+        // Battery State
+        if (sPrefs.getBoolean(prefBatteryKey, true)) {
+            remainingBatteryTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.batteryImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            remainingBatteryTextView.setVisibility(View.GONE);
+            findViewById(R.id.batteryImage).setVisibility(View.GONE);
+        }
+
+        // Remaining Flight TIme
         if (sPrefs.getBoolean(prefFlightTimeKey, true)) {
             remainingFlightTimeTextView.setVisibility(View.VISIBLE);
             findViewById(R.id.remainingTimeImage).setVisibility(View.VISIBLE);
@@ -108,6 +120,7 @@ public class FullscreenActivity extends AppCompatActivity {
             findViewById(R.id.remainingTimeImage).setVisibility(View.GONE);
         }
 
+        // Altitude
         if (sPrefs.getBoolean(prefAltitudeKey, true)) {
             altitudeTextView.setVisibility(View.VISIBLE);
             findViewById(R.id.altitudeImage).setVisibility(View.VISIBLE);
@@ -117,6 +130,7 @@ public class FullscreenActivity extends AppCompatActivity {
             findViewById(R.id.altitudeImage).setVisibility(View.GONE);
         }
 
+        // Temperature
         if (sPrefs.getBoolean(prefTemperatureKey, true)) {
             temperatureTextView.setVisibility(View.VISIBLE);
             findViewById(R.id.temperatureImage).setVisibility(View.VISIBLE);

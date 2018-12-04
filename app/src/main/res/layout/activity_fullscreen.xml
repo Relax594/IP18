@@ -63,7 +63,7 @@
             android:id="@+id/batteryImage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:src="@drawable/battery_half"
+            android:src="@drawable/battery_full"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/remainingTimeImage"
             app:layout_constraintStart_toEndOf="@id/droneImage"

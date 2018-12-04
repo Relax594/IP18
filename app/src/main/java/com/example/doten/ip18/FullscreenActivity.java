@@ -1,7 +1,12 @@
 package com.example.doten.ip18;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -10,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +27,7 @@ public class FullscreenActivity extends AppCompatActivity {
     TextView remainingBatteryTextView;
     TextView altitudeTextView;
     TextView temperatureTextView;
+    ImageView batteryImageView;
     View droneView;
     SharedPreferences sPrefs;
 
@@ -37,6 +44,7 @@ public class FullscreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen);
 
         remainingBatteryTextView    = findViewById(R.id.remainingbatt);
+        batteryImageView            = findViewById(R.id.batteryImage);
         remainingFlightTimeTextView = findViewById(R.id.remainingtime);
         altitudeTextView            = findViewById(R.id.altitude);
         temperatureTextView         = findViewById(R.id.temperature);
@@ -72,18 +80,47 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void CheckValue(String newValue, SensorData.MessageType dataType) {
+
+        int result = Integer.parseInt(newValue);
+
         if (dataType == SensorData.MessageType.Temperature) {
-
+            if (result > 50){
+                PlayNotification("The Temperature is becoming too high (more then 50°C)");
+            }
         } else if (dataType == SensorData.MessageType.Altitude) {
-
+            if(result > 120){
+                PlayNotification("Becareful, Drone is going out of control.");
+            }
+        } else if (dataType == SensorData.MessageType.RemainingBatt) {
+            if (result < 10) {
+                PlayNotification("Battery is low (< 10% remaining).");
+                batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_empty));
+            }
+            else if (result < 20) {
+                PlayNotification("Battery is running low (< 20% remaining).");
+                batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_low));
+            } else if (result < 50) {
+                batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_half));
+            }
         }
-
-        // TODO: check other dataType with value
-        // TODO: PlayNotification when value gets over limit
     }
 
-    public void PlayNotification() {
-        // TODO: ADD NotificationManager with Settings
+    public void PlayNotification(String warningMessage) {
+        //Define Notification Manager
+        NotificationManager notificationManager = (NotificationManager) this.getSystemService(this.NOTIFICATION_SERVICE);
+
+        Uri soundURI = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        Notification.Builder mNotification = new Notification.Builder(this)
+                .setContentTitle("Warning! ")
+                .setSmallIcon(R.drawable.alert)
+                .setContentText(warningMessage)
+                .setSound(soundURI);
+
+        if (doVibrate) {
+            mNotification.setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
+        }
+
+        notificationManager.notify(0, mNotification.build());
     }
 
     @Override

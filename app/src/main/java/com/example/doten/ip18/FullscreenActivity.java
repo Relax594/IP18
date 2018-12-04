@@ -5,18 +5,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
-import com.example.doten.ip18.MessageFetching;
-import com.example.doten.ip18.SensorData;
 
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -26,6 +21,7 @@ public class FullscreenActivity extends AppCompatActivity {
     TextView remainingBatteryTextView;
     TextView altitudeTextView;
     TextView temperatureTextView;
+    View droneView;
     SharedPreferences sPrefs;
 
     boolean showHeartbeat = true;
@@ -44,7 +40,16 @@ public class FullscreenActivity extends AppCompatActivity {
         remainingFlightTimeTextView = findViewById(R.id.remainingtime);
         altitudeTextView            = findViewById(R.id.altitude);
         temperatureTextView         = findViewById(R.id.temperature);
+        droneView                   = findViewById(R.id.droneActive);
         sPrefs                      = PreferenceManager.getDefaultSharedPreferences(this);
+
+        View settings = findViewById(R.id.settingsImage);
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(FullscreenActivity.this, SettingsActivity.class));
+            }
+        });
 
         // create Handler and start MessageFetching
         Handler handler = new Handler();
@@ -54,7 +59,7 @@ public class FullscreenActivity extends AppCompatActivity {
     public void logSensorData(SensorData sensorData) {
         if (sensorData.type == SensorData.MessageType.HeartBeat && showHeartbeat) {
             // show heartbeat message
-            Toast.makeText(getApplicationContext(), "Heartbeat received", Toast.LENGTH_LONG).show();
+            droneView.setBackground(ContextCompat.getDrawable(this, R.drawable.view_connected));
             showHeartbeat = false;
         } else {
             CheckValue(sensorData.getContent(), sensorData.type);
@@ -94,20 +99,33 @@ public class FullscreenActivity extends AppCompatActivity {
         String prefTemperatureKey = getString(R.string.pref_temperature_key);
         String prefVibrationKey = getString(R.string.pref_vibrate_key);
 
-        if (sPrefs.getBoolean(prefFlightTimeKey, true)) remainingFlightTimeTextView.setVisibility(View.VISIBLE);
-        else remainingFlightTimeTextView.setVisibility(View.GONE);
+        if (sPrefs.getBoolean(prefFlightTimeKey, true)) {
+            remainingFlightTimeTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.remainingTimeImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            remainingFlightTimeTextView.setVisibility(View.GONE);
+            findViewById(R.id.remainingTimeImage).setVisibility(View.GONE);
+        }
 
-        if (sPrefs.getBoolean(prefAltitudeKey, true)) altitudeTextView.setVisibility(View.VISIBLE);
-        else altitudeTextView.setVisibility(View.GONE);
+        if (sPrefs.getBoolean(prefAltitudeKey, true)) {
+            altitudeTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.altitudeImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            altitudeTextView.setVisibility(View.GONE);
+            findViewById(R.id.altitudeImage).setVisibility(View.GONE);
+        }
 
-        if (sPrefs.getBoolean(prefTemperatureKey, true)) temperatureTextView.setVisibility(View.VISIBLE);
-        else temperatureTextView.setVisibility(View.GONE);
+        if (sPrefs.getBoolean(prefTemperatureKey, true)) {
+            temperatureTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.temperatureImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            temperatureTextView.setVisibility(View.GONE);
+            findViewById(R.id.temperatureImage).setVisibility(View.GONE);
+        }
 
         doVibrate = sPrefs.getBoolean(prefVibrationKey, true);
-    }
-
-
-    public void ButtonSettings_onClick(View view) {
-        startActivity(new Intent(this, SettingsActivity.class));
     }
 }

@@ -19,6 +19,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 public class FullscreenActivity extends AppCompatActivity {
 
@@ -59,9 +62,23 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
+        // refresh connection state to drone every 5 seconds
+        refreshConnectionState();
+
         // create Handler and start MessageFetching
         Handler handler = new Handler();
         new Thread(new MessageFetching(this, handler)).start();
+    }
+
+    private void refreshConnectionState() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                showHeartbeat = true;
+                droneView.setBackground(ContextCompat.getDrawable(FullscreenActivity.this, R.drawable.view_disconnected));
+            }
+        }, 0, 5000);
     }
 
     public void logSensorData(SensorData sensorData) {
@@ -80,6 +97,15 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void CheckValue(String newValue, SensorData.MessageType dataType) {
+
+        // No check for remaining time needed (battery state does the same basically)
+        if (dataType == SensorData.MessageType.RemainingTime) return;
+
+        // remove % from string (for battery state)
+        newValue = newValue.replace("%", "");
+
+        // remove m from string (for altitude)
+        newValue = newValue.replace("m", "");
 
         int result = Integer.parseInt(newValue);
 
@@ -111,7 +137,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         Uri soundURI = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         Notification.Builder mNotification = new Notification.Builder(this)
-                .setContentTitle("Warning! ")
+                .setContentTitle("Warning!")
                 .setSmallIcon(R.drawable.alert)
                 .setContentText(warningMessage)
                 .setSound(soundURI);

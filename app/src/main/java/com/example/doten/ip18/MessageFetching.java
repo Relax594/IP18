@@ -97,7 +97,7 @@ public class MessageFetching extends Thread {
                     MavlinkMessage<GlobalPositionInt> m = (MavlinkMessage<GlobalPositionInt>)message;
                     int relativeAltitudeInMm            = m.getPayload().relativeAlt();
                     float relativeAltitudeInMeters      = ((float) relativeAltitudeInMm) / 1000.0f;
-                    String content                      = String.valueOf(relativeAltitudeInMeters);
+                    String content                      = String.valueOf(relativeAltitudeInMeters) + "m";
                     sensorData = new SensorData(SensorData.MessageType.Altitude, content);
                 } else {
                     continue;

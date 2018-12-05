@@ -89,7 +89,7 @@ public class MessageFetching extends Thread {
                     } else {
                         int minutes = timeRemaining / 60;
                         int seconds = timeRemaining % 60;
-                        content = String.valueOf(minutes) + ":" + String.valueOf(seconds);
+                        content = String.format("%d:%02d", minutes, seconds);
                     }
                     sensorData = new SensorData(SensorData.MessageType.RemainingTime, content);
                 } else if(message.getPayload() instanceof GlobalPositionInt) {

@@ -101,6 +101,9 @@ public class FullscreenActivity extends AppCompatActivity {
         // No check for remaining time needed (battery state does the same basically)
         if (dataType == SensorData.MessageType.RemainingTime) return;
 
+        // No value given
+        if (newValue == "N/A") return;
+        
         // remove % from string (for battery state)
         newValue = newValue.replace("%", "");
 

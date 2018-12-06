@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -31,11 +33,12 @@ public class FullscreenActivity extends AppCompatActivity {
     ImageView batteryImageView;
     View droneView;
     SharedPreferences sPrefs;
+    Drawable connectedDrawable;
 
     //Define Notification Manager
     NotificationManager notificationManager;
 
-    boolean showedHeartbeat = true;
+    Date lastMessageReceived;
     boolean showedAltitudeWarning = false;
     boolean showedTemperatureWarning = false;
     boolean showedBatteryWarning = false;
@@ -59,6 +62,8 @@ public class FullscreenActivity extends AppCompatActivity {
         droneView                   = findViewById(R.id.droneActive);
         sPrefs                      = PreferenceManager.getDefaultSharedPreferences(this);
         notificationManager         = (NotificationManager) this.getSystemService(this.NOTIFICATION_SERVICE);
+        connectedDrawable           = ContextCompat.getDrawable(this, R.drawable.view_connected);
+        lastMessageReceived         = new Date();
 
         View settings = findViewById(R.id.settingsImage);
         settings.setOnClickListener(new View.OnClickListener() {
@@ -68,7 +73,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
-        // refresh connection state to drone every 5 seconds
+        // refresh connection state to drone every second
         refreshConnectionState();
 
         // create Handler and start MessageFetching
@@ -82,30 +87,38 @@ public class FullscreenActivity extends AppCompatActivity {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                showedHeartbeat = true;
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        droneView.setBackground(ContextCompat.getDrawable(FullscreenActivity.this, R.drawable.view_disconnected));
+
+                        if ((new Date().getTime() - lastMessageReceived.getTime()) > 1000) {
+                            droneView.setBackground(ContextCompat.getDrawable(FullscreenActivity.this, R.drawable.view_disconnected));
+                        }
                     }
                 });
             }
-        }, 0, 5000);
+        }, 0, 1000);
     }
 
     public void logSensorData(SensorData sensorData) {
-        if (sensorData.type == SensorData.MessageType.HeartBeat && showedHeartbeat) {
-            // show heartbeat message
-            droneView.setBackground(ContextCompat.getDrawable(this, R.drawable.view_connected));
-            showedHeartbeat = false;
-        } else {
-            CheckValue(sensorData.getContent(), sensorData.type);
 
-            // update textview based on data
-            TextView textViewToUpdate = findViewById(sensorData.type.myTextView.id);
-
-            if (textViewToUpdate != null) textViewToUpdate.setText(sensorData.getContent());
+        // refresh connection state if needed
+        if (droneView.getBackground() != connectedDrawable) {
+            droneView.setBackground(connectedDrawable);
         }
+
+        lastMessageReceived = new Date();
+
+        // no need to refresh anything
+        if (sensorData.type == SensorData.MessageType.HeartBeat) return;
+
+        // check value for possible needed warning
+        CheckValue(sensorData.getContent(), sensorData.type);
+
+        // update textview based on data
+        TextView textViewToUpdate = findViewById(sensorData.type.myTextView.id);
+
+        if (textViewToUpdate != null) textViewToUpdate.setText(sensorData.getContent());
     }
 
     public void CheckValue(String newValue, SensorData.MessageType dataType) {

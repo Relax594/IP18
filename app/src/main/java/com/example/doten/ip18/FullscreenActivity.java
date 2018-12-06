@@ -1,7 +1,6 @@
 package com.example.doten.ip18;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,7 +16,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,8 +32,15 @@ public class FullscreenActivity extends AppCompatActivity {
     View droneView;
     SharedPreferences sPrefs;
 
-    boolean showHeartbeat = true;
+    //Define Notification Manager
+    NotificationManager notificationManager;
+
+    boolean showedHeartbeat = true;
+    boolean showedAltitudeWarning = false;
+    boolean showedTemperatureWarning = false;
+    boolean showedBatteryWarning = false;
     boolean doVibrate = true;
+    int notificationId = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +58,7 @@ public class FullscreenActivity extends AppCompatActivity {
         temperatureTextView         = findViewById(R.id.temperature);
         droneView                   = findViewById(R.id.droneActive);
         sPrefs                      = PreferenceManager.getDefaultSharedPreferences(this);
+        notificationManager         = (NotificationManager) this.getSystemService(this.NOTIFICATION_SERVICE);
 
         View settings = findViewById(R.id.settingsImage);
         settings.setOnClickListener(new View.OnClickListener() {
@@ -71,12 +77,12 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     private void refreshConnectionState() {
-        Handler handler = new Handler();
+        final Handler handler = new Handler();
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                showHeartbeat = true;
+                showedHeartbeat = true;
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -88,10 +94,10 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void logSensorData(SensorData sensorData) {
-        if (sensorData.type == SensorData.MessageType.HeartBeat && showHeartbeat) {
+        if (sensorData.type == SensorData.MessageType.HeartBeat && showedHeartbeat) {
             // show heartbeat message
             droneView.setBackground(ContextCompat.getDrawable(this, R.drawable.view_connected));
-            showHeartbeat = false;
+            showedHeartbeat = false;
         } else {
             CheckValue(sensorData.getContent(), sensorData.type);
 
@@ -119,30 +125,43 @@ public class FullscreenActivity extends AppCompatActivity {
         float result = Float.parseFloat(newValue);
 
         if (dataType == SensorData.MessageType.Temperature) {
-            if (result > 50){
+            if (result > 50 && !showedTemperatureWarning){
+                showedTemperatureWarning = true;
                 PlayNotification("The Temperature is becoming too high (more then 50°C)");
+            } else {
+                showedTemperatureWarning = false;
             }
         } else if (dataType == SensorData.MessageType.Altitude) {
-            if(result > 120){
+            if(result > 120 && !showedAltitudeWarning){
+                showedAltitudeWarning = true;
                 PlayNotification("Be careful, Drone is going out of control.");
+            } else {
+                showedAltitudeWarning = false;
             }
         } else if (dataType == SensorData.MessageType.RemainingBatt) {
-            if (result < 10) {
+            if (result < 10 && !showedBatteryWarning) {
+                showedBatteryWarning = true;
+
                 PlayNotification("Battery is low (< 10% remaining).");
                 batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_empty));
             }
-            else if (result < 20) {
+            else if (result < 20 && result > 10) {
+                showedBatteryWarning = false;
+            }
+            else if (result < 20 && !showedBatteryWarning) {
+                showedBatteryWarning = true;
+
                 PlayNotification("Battery is running low (< 20% remaining).");
                 batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_low));
             } else if (result < 50) {
                 batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_half));
+            } else {
+                showedBatteryWarning = false;
             }
         }
     }
 
     public void PlayNotification(String warningMessage) {
-        //Define Notification Manager
-        NotificationManager notificationManager = (NotificationManager) this.getSystemService(this.NOTIFICATION_SERVICE);
 
         Uri soundURI = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         Notification.Builder mNotification = new Notification.Builder(this)
@@ -155,7 +174,9 @@ public class FullscreenActivity extends AppCompatActivity {
             mNotification.setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
         }
 
-        notificationManager.notify(0, mNotification.build());
+        notificationManager.notify(notificationId, mNotification.build());
+
+        notificationId++;
     }
 
     @Override

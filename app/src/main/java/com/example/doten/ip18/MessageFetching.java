@@ -67,7 +67,7 @@ public class MessageFetching extends Thread {
 
                 if(message.getPayload() instanceof Heartbeat) {
                     // Log.d("TEST", "Received HeartBeat");
-                    sensorData = new SensorData(SensorData.MessageType.HeartBeat, "");
+                    sensorData = new SensorData(SensorData.MessageType.HeartBeat, "N/A");
                 } else if(message.getPayload() instanceof SysStatus) {
                     // Log.d("TEST", "Received SysStatus");
                     MavlinkMessage<SysStatus> m = (MavlinkMessage<SysStatus>)message;

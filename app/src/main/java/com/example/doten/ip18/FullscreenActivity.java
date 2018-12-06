@@ -71,12 +71,18 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     private void refreshConnectionState() {
+        Handler handler = new Handler();
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 showHeartbeat = true;
-                droneView.setBackground(ContextCompat.getDrawable(FullscreenActivity.this, R.drawable.view_disconnected));
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        droneView.setBackground(ContextCompat.getDrawable(FullscreenActivity.this, R.drawable.view_disconnected));
+                    }
+                });
             }
         }, 0, 5000);
     }
@@ -110,7 +116,7 @@ public class FullscreenActivity extends AppCompatActivity {
         // remove m from string (for altitude)
         newValue = newValue.replace("m", "");
 
-        int result = Integer.parseInt(newValue);
+        float result = Float.parseFloat(newValue);
 
         if (dataType == SensorData.MessageType.Temperature) {
             if (result > 50){
@@ -118,7 +124,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         } else if (dataType == SensorData.MessageType.Altitude) {
             if(result > 120){
-                PlayNotification("Becareful, Drone is going out of control.");
+                PlayNotification("Be careful, Drone is going out of control.");
             }
         } else if (dataType == SensorData.MessageType.RemainingBatt) {
             if (result < 10) {

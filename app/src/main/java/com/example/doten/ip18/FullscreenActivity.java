@@ -200,6 +200,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 .setContentTitle("Warning!")
                 .setSmallIcon(R.drawable.alert)
                 .setContentText(warningMessage)
+                .setAutoCancel(true)
                 .setSound(soundURI);
 
         if (doVibrate) {

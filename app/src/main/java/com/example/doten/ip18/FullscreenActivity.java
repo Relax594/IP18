@@ -25,15 +25,28 @@ import java.util.TimerTask;
 
 public class FullscreenActivity extends AppCompatActivity {
 
+    // Notification IDs
+    public enum Notifications {
+        No (0),
+        Battery (1),
+        Altitude (2),
+        Temperature (3),
+        ;
+
+        public final int id;
+
+        Notifications(int id) {this.id = id;}
+    }
+
     // Get Controls from Layout
-    TextView remainingFlightTimeTextView;
-    TextView remainingBatteryTextView;
-    TextView altitudeTextView;
-    TextView temperatureTextView;
-    ImageView batteryImageView;
-    View droneView;
-    SharedPreferences sPrefs;
-    Drawable connectedDrawable;
+    private TextView remainingFlightTimeTextView;
+    private TextView remainingBatteryTextView;
+    private TextView altitudeTextView;
+    private TextView temperatureTextView;
+    private ImageView batteryImageView;
+    private View droneView;
+    private SharedPreferences sPrefs;
+    private Drawable connectedDrawable;
 
     //Define Notification Manager
     NotificationManager notificationManager;
@@ -43,7 +56,6 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean showedTemperatureWarning = false;
     boolean showedBatteryWarning = false;
     boolean doVibrate = true;
-    int notificationId = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -140,22 +152,24 @@ public class FullscreenActivity extends AppCompatActivity {
         if (dataType == SensorData.MessageType.Temperature) {
             if (result > 50 && !showedTemperatureWarning){
                 showedTemperatureWarning = true;
-                PlayNotification("The Temperature is becoming too high (more then 50°C)");
+                PlayNotification("The Temperature is becoming too high (more then 50°C)", Notifications.Temperature.id);
             } else {
                 showedTemperatureWarning = false;
+                CancelNotification(Notifications.Temperature.id);
             }
         } else if (dataType == SensorData.MessageType.Altitude) {
             if(result > 120 && !showedAltitudeWarning){
                 showedAltitudeWarning = true;
-                PlayNotification("Be careful, Drone is going out of control.");
+                PlayNotification("Be careful, Drone is going out of control.", Notifications.Altitude.id);
             } else {
                 showedAltitudeWarning = false;
+                CancelNotification(Notifications.Altitude.id);
             }
         } else if (dataType == SensorData.MessageType.RemainingBatt) {
             if (result < 10 && !showedBatteryWarning) {
                 showedBatteryWarning = true;
 
-                PlayNotification("Battery is low (< 10% remaining).");
+                PlayNotification("Battery is low (< 10% remaining).", Notifications.Battery.id);
                 batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_empty));
             }
             else if (result < 20 && result > 10) {
@@ -164,17 +178,22 @@ public class FullscreenActivity extends AppCompatActivity {
             else if (result < 20 && !showedBatteryWarning) {
                 showedBatteryWarning = true;
 
-                PlayNotification("Battery is running low (< 20% remaining).");
+                PlayNotification("Battery is running low (< 20% remaining).", Notifications.Battery.id);
                 batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_low));
             } else if (result < 50) {
                 batteryImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.battery_half));
             } else {
                 showedBatteryWarning = false;
+                CancelNotification(Notifications.Battery.id);
             }
         }
     }
 
-    public void PlayNotification(String warningMessage) {
+    private void CancelNotification(int notificationId) {
+        notificationManager.cancel(notificationId);
+    }
+
+    public void PlayNotification(String warningMessage, int notificationId) {
 
         Uri soundURI = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         Notification.Builder mNotification = new Notification.Builder(this)
@@ -188,8 +207,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
         notificationManager.notify(notificationId, mNotification.build());
-
-        notificationId++;
     }
 
     @Override

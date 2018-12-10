@@ -2,9 +2,12 @@ package com.example.doten.ip18;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.hardware.usb.UsbDevice;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,18 +15,32 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.serenegiant.usb.Size;
+import com.serenegiant.usb.CameraDialog;
+import com.serenegiant.usb.USBMonitor;
+import com.serenegiant.usb.UVCCamera;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class FullscreenActivity extends AppCompatActivity {
+public class FullscreenActivity extends AppCompatActivity implements CameraDialog.CameraDialogParent {
+
+    BaseActivity baseActivity;
 
     // Notification IDs
     public enum Notifications {
@@ -48,6 +65,20 @@ public class FullscreenActivity extends AppCompatActivity {
     private SharedPreferences sPrefs;
     private Drawable connectedDrawable;
 
+    private final Object mSync = new Object();
+
+    private static final boolean DEBUG = false;	// TODO set false when production
+    private static final String TAG = "FullscreenActivity";
+
+    // for accessing USB and USB camera
+    private USBMonitor mUSBMonitor;
+    private UVCCamera mUVCCamera;
+    private SurfaceView mUVCCameraView;
+    // for open&start / stop&close camera preview
+    private ImageButton mCameraButton;
+    private Surface mPreviewSurface;
+    private boolean isActive, isPreview;
+
     //Define Notification Manager
     NotificationManager notificationManager;
 
@@ -65,6 +96,16 @@ public class FullscreenActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_fullscreen);
+
+        baseActivity = new BaseActivity();
+
+        mCameraButton = (ImageButton)findViewById(R.id.camera_button);
+        mCameraButton.setOnClickListener(mOnClickListener);
+
+        mUVCCameraView = (SurfaceView)findViewById(R.id.UVCCameraTextureView1);
+        mUVCCameraView.getHolder().addCallback(mSurfaceViewCallback);
+
+        mUSBMonitor = new USBMonitor(this, mOnDeviceConnectListener);
 
         remainingBatteryTextView    = findViewById(R.id.remainingbatt);
         batteryImageView            = findViewById(R.id.batteryImage);
@@ -110,6 +151,20 @@ public class FullscreenActivity extends AppCompatActivity {
                 });
             }
         }, 0, 1000);
+    }
+
+    private int GetScreenWidth() {
+        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        Point size = new Point();
+        wm.getDefaultDisplay().getRealSize(size);
+        return size.x;
+    }
+
+    private int GetScreenHeight() {
+        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        Point size = new Point();
+        wm.getDefaultDisplay().getRealSize(size);
+        return size.y;
     }
 
     public void logSensorData(SensorData sensorData) {
@@ -209,6 +264,239 @@ public class FullscreenActivity extends AppCompatActivity {
 
         notificationManager.notify(notificationId, mNotification.build());
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (DEBUG) Log.v(TAG, "onStart:");
+        synchronized (mSync) {
+            if (mUSBMonitor != null) {
+                mUSBMonitor.register();
+            }
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        if (DEBUG) Log.v(TAG, "onStop:");
+        synchronized (mSync) {
+            if (mUSBMonitor != null) {
+                mUSBMonitor.unregister();
+            }
+        }
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (DEBUG) Log.v(TAG, "onDestroy:");
+        synchronized (mSync) {
+            isActive = isPreview = false;
+            if (mUVCCamera != null) {
+                mUVCCamera.destroy();
+                mUVCCamera = null;
+            }
+            if (mUSBMonitor != null) {
+                mUSBMonitor.destroy();
+                mUSBMonitor = null;
+            }
+        }
+        mUVCCameraView = null;
+        mCameraButton = null;
+        super.onDestroy();
+    }
+
+    private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(final View view) {
+            if (mUVCCamera == null) {
+                // XXX calling CameraDialog.showDialog is necessary at only first time(only when app has no permission).
+                CameraDialog.showDialog(FullscreenActivity.this);
+            } else {
+                synchronized (mSync) {
+                    mUVCCamera.destroy();
+                    mUVCCamera = null;
+                    isActive = isPreview = false;
+                }
+            }
+        }
+    };
+
+    private final USBMonitor.OnDeviceConnectListener mOnDeviceConnectListener = new USBMonitor.OnDeviceConnectListener() {
+        @Override
+        public void onAttach(final UsbDevice device) {
+            if (DEBUG) Log.v(TAG, "onAttach:");
+            Toast.makeText(FullscreenActivity.this, "USB_DEVICE_ATTACHED", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onConnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock, final boolean createNew) {
+            if (DEBUG) Log.v(TAG, "onConnect:");
+            synchronized (mSync) {
+                if (mUVCCamera != null) {
+                    mUVCCamera.destroy();
+                }
+                isActive = isPreview = false;
+            }
+            baseActivity.queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (mSync) {
+                        final UVCCamera camera = new UVCCamera();
+                        camera.open(ctrlBlock);
+                        if (DEBUG) Log.i(TAG, "supportedSize:" + camera.getSupportedSize());
+
+                        List<Size> mjpeg_camera_sizes = UVCCamera.getSupportedSize(6, camera.getSupportedSize());
+                        // Pick the size that is closest to our required resolution
+                        int required_width = GetScreenWidth();
+                        int required_height = GetScreenHeight();
+                        int required_area = required_width * required_height;
+                        int preview_width = 0;
+                        int preview_height = 0;
+                        int error = Integer.MAX_VALUE; // trying to get this as small as possible
+                        for (Size s : mjpeg_camera_sizes) {
+                            // calculate the area for each camera size
+                            int s_area = s.width * s.height;
+                            // calculate the difference between this size and the target size
+                            int abs_error = Math.abs(s_area - required_area);
+                            // check if the abs_error is smaller than what we have already
+                            // then use the new size
+                            if (abs_error < error){
+                                preview_width = s.width;
+                                preview_height = s.height;
+                                error = abs_error;
+                            }
+                        }
+
+                        try {
+                            camera.setPreviewSize(preview_width, preview_height, UVCCamera.FRAME_FORMAT_MJPEG);
+                        } catch (final IllegalArgumentException e) {
+                            try {
+                                // fallback to YUV mode
+
+                                List<Size> yuv_camera_sizes = UVCCamera.getSupportedSize(4, camera.getSupportedSize());
+
+                                // find closest matching size
+                                // Pick the size that is closest to our required resolution
+                                int yuv_preview_width = 0;
+                                int yuv_preview_height = 0;
+                                int yuv_error = Integer.MAX_VALUE; // trying to get this as small as possible
+                                for (Size s : yuv_camera_sizes) {
+                                    // calculate the area for each camera size
+                                    int s_area = s.width * s.height;
+                                    // calculate the difference between this size and the target size
+                                    int abs_error = Math.abs(s_area - required_area);
+                                    // check if the abs_error is smaller than what we have already
+                                    // then use the new size
+                                    if (abs_error < yuv_error) {
+                                        yuv_preview_width = s.width;
+                                        yuv_preview_height = s.height;
+                                        yuv_error = abs_error;
+                                    }
+                                }
+
+                                camera.setPreviewSize(yuv_preview_width, yuv_preview_height, UVCCamera.FRAME_FORMAT_YUYV);
+                            } catch (final IllegalArgumentException e1) {
+                                camera.destroy();
+                                return;
+                            }
+                        }
+                        mPreviewSurface = mUVCCameraView.getHolder().getSurface();
+                        if (mPreviewSurface != null) {
+                            isActive = true;
+                            camera.setPreviewDisplay(mPreviewSurface);
+                            camera.startPreview();
+                            isPreview = true;
+                        }
+                        synchronized (mSync) {
+                            mUVCCamera = camera;
+                        }
+                    }
+                }
+            }, 0);
+        }
+
+        @Override
+        public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
+            if (DEBUG) Log.v(TAG, "onDisconnect:");
+            // XXX you should check whether the comming device equal to camera device that currently using
+            baseActivity.queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (mSync) {
+                        if (mUVCCamera != null) {
+                            mUVCCamera.close();
+                            if (mPreviewSurface != null) {
+                                mPreviewSurface.release();
+                                mPreviewSurface = null;
+                            }
+                            isActive = isPreview = false;
+                        }
+                    }
+                }
+            }, 0);
+        }
+
+        @Override
+        public void onDettach(final UsbDevice device) {
+            if (DEBUG) Log.v(TAG, "onDettach:");
+            Toast.makeText(FullscreenActivity.this, "USB_DEVICE_DETACHED", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onCancel(final UsbDevice device) {
+        }
+    };
+
+    @Override
+    public USBMonitor getUSBMonitor() {
+        return mUSBMonitor;
+    }
+
+    @Override
+    public void onDialogResult(boolean canceled) {
+        if (canceled) {
+            baseActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // FIXME
+                }
+            }, 0);
+        }
+    }
+
+    private final SurfaceHolder.Callback mSurfaceViewCallback = new SurfaceHolder.Callback() {
+        @Override
+        public void surfaceCreated(final SurfaceHolder holder) {
+            if (DEBUG) Log.v(TAG, "surfaceCreated:");
+        }
+
+        @Override
+        public void surfaceChanged(final SurfaceHolder holder, final int format, final int width, final int height) {
+            if ((width == 0) || (height == 0)) return;
+            if (DEBUG) Log.v(TAG, "surfaceChanged:");
+            mPreviewSurface = holder.getSurface();
+            synchronized (mSync) {
+                if (isActive && !isPreview && (mUVCCamera != null)) {
+                    mUVCCamera.setPreviewDisplay(mPreviewSurface);
+                    mUVCCamera.startPreview();
+                    isPreview = true;
+                }
+            }
+        }
+
+        @Override
+        public void surfaceDestroyed(final SurfaceHolder holder) {
+            if (DEBUG) Log.v(TAG, "surfaceDestroyed:");
+            synchronized (mSync) {
+                if (mUVCCamera != null) {
+                    mUVCCamera.stopPreview();
+                }
+                isPreview = false;
+            }
+            mPreviewSurface = null;
+        }
+    };
 
     @Override
     protected void onResume() {

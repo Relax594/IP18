@@ -13,8 +13,8 @@
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
 
-    <TextureView
-        android:id="@+id/videoView"
+    <SurfaceView
+        android:id="@+id/UVCCameraTextureView1"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
@@ -28,6 +28,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.49" />
+
+    <ImageButton
+        android:id="@+id/camera_button"
+        android:layout_width="@dimen/button_size"
+        android:layout_height="@dimen/button_size"
+        android:contentDescription="@string/camera"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/ic_menu_camera" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/bottomBar"

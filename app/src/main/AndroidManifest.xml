@@ -30,7 +30,7 @@
         <activity
             android:name=".SettingsActivity"
             android:screenOrientation="landscape"
-            android:configChanges="keyboardHidden|orientation|screenSize">
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".FullscreenActivity">
             <meta-data

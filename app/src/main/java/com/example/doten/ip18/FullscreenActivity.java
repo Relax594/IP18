@@ -20,6 +20,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -41,6 +42,9 @@ import java.util.TimerTask;
 public class FullscreenActivity extends AppCompatActivity implements CameraDialog.CameraDialogParent {
 
     BaseActivity baseActivity;
+
+
+
 
     // Notification IDs
     public enum Notifications {
@@ -117,6 +121,9 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
         notificationManager         = (NotificationManager) this.getSystemService(this.NOTIFICATION_SERVICE);
         connectedDrawable           = ContextCompat.getDrawable(this, R.drawable.view_connected);
         lastMessageReceived         = new Date();
+
+        // Redrawing the layout
+        findViewById(android.R.id.content).invalidate();
 
         View settings = findViewById(R.id.settingsImage);
         settings.setOnClickListener(new View.OnClickListener() {
@@ -502,6 +509,8 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
     protected void onResume() {
         super.onResume();
         ReloadOnSettingsChanged();
+        //Redrawing the layout
+        findViewById(android.R.id.content).invalidate();
     }
 
     public void ReloadOnSettingsChanged() {

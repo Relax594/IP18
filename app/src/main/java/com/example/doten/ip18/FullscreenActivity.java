@@ -5,11 +5,13 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.hardware.usb.UsbDevice;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -124,6 +126,11 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
 
         // Redrawing the layout
         findViewById(android.R.id.content).invalidate();
+
+        // landscape sense
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        }
 
         View settings = findViewById(R.id.settingsImage);
         settings.setOnClickListener(new View.OnClickListener() {

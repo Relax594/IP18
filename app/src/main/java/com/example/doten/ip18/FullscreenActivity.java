@@ -22,7 +22,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -44,9 +43,6 @@ import java.util.TimerTask;
 public class FullscreenActivity extends AppCompatActivity implements CameraDialog.CameraDialogParent {
 
     BaseActivity baseActivity;
-
-
-
 
     // Notification IDs
     public enum Notifications {
@@ -73,7 +69,7 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
 
     private final Object mSync = new Object();
 
-    private static final boolean DEBUG = false;	// TODO set false when production
+    private static final boolean DEBUG = true;	// TODO set false when production
     private static final String TAG = "FullscreenActivity";
 
     // for accessing USB and USB camera
@@ -128,17 +124,10 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
         findViewById(android.R.id.content).invalidate();
 
         // landscape sense
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-        }
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 
         View settings = findViewById(R.id.settingsImage);
-        settings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(FullscreenActivity.this, SettingsActivity.class));
-            }
-        });
+        settings.setOnClickListener(v -> startActivity(new Intent(FullscreenActivity.this, SettingsActivity.class)));
 
         // refresh connection state to drone every second
         refreshConnectionState();
@@ -146,6 +135,65 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
         // create Handler and start MessageFetching
         Handler handler = new Handler();
         new Thread(new MessageFetching(this, handler)).start();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ReloadOnSettingsChanged();
+        //Redrawing the layout
+        findViewById(android.R.id.content).invalidate();
+    }
+
+    public void ReloadOnSettingsChanged() {
+        // Read Settings by Key
+        String prefBatteryKey = getString(R.string.pref_battery_key);
+        String prefFlightTimeKey = getString(R.string.pref_flightTime_key);
+        String prefAltitudeKey = getString(R.string.pref_altitude_key);
+        String prefTemperatureKey = getString(R.string.pref_temperature_key);
+        String prefVibrationKey = getString(R.string.pref_vibrate_key);
+
+        // Battery State
+        if (sPrefs.getBoolean(prefBatteryKey, true)) {
+            remainingBatteryTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.batteryImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            remainingBatteryTextView.setVisibility(View.GONE);
+            findViewById(R.id.batteryImage).setVisibility(View.GONE);
+        }
+
+        // Remaining Flight TIme
+        if (sPrefs.getBoolean(prefFlightTimeKey, true)) {
+            remainingFlightTimeTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.remainingTimeImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            remainingFlightTimeTextView.setVisibility(View.GONE);
+            findViewById(R.id.remainingTimeImage).setVisibility(View.GONE);
+        }
+
+        // Altitude
+        if (sPrefs.getBoolean(prefAltitudeKey, true)) {
+            altitudeTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.altitudeImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            altitudeTextView.setVisibility(View.GONE);
+            findViewById(R.id.altitudeImage).setVisibility(View.GONE);
+        }
+
+        // Temperature
+        if (sPrefs.getBoolean(prefTemperatureKey, true)) {
+            temperatureTextView.setVisibility(View.VISIBLE);
+            findViewById(R.id.temperatureImage).setVisibility(View.VISIBLE);
+        }
+        else {
+            temperatureTextView.setVisibility(View.GONE);
+            findViewById(R.id.temperatureImage).setVisibility(View.GONE);
+        }
+
+        doVibrate = sPrefs.getBoolean(prefVibrationKey, true);
     }
 
     private void refreshConnectionState() {
@@ -165,20 +213,6 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
                 });
             }
         }, 0, 1000);
-    }
-
-    private int GetScreenWidth() {
-        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        Point size = new Point();
-        wm.getDefaultDisplay().getRealSize(size);
-        return size.x;
-    }
-
-    private int GetScreenHeight() {
-        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        Point size = new Point();
-        wm.getDefaultDisplay().getRealSize(size);
-        return size.y;
     }
 
     public void logSensorData(SensorData sensorData) {
@@ -279,6 +313,22 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
         notificationManager.notify(notificationId, mNotification.build());
     }
 
+    //region FPV Streaming
+
+    private int GetScreenWidth() {
+        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        Point size = new Point();
+        wm.getDefaultDisplay().getRealSize(size);
+        return size.x;
+    }
+
+    private int GetScreenHeight() {
+        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        Point size = new Point();
+        wm.getDefaultDisplay().getRealSize(size);
+        return size.y;
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -341,6 +391,7 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
         public void onAttach(final UsbDevice device) {
             if (DEBUG) Log.v(TAG, "onAttach:");
             Toast.makeText(FullscreenActivity.this, "USB_DEVICE_ATTACHED", Toast.LENGTH_SHORT).show();
+            CameraDialog.showDialog(FullscreenActivity.this);
         }
 
         @Override
@@ -512,62 +563,5 @@ public class FullscreenActivity extends AppCompatActivity implements CameraDialo
         }
     };
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        ReloadOnSettingsChanged();
-        //Redrawing the layout
-        findViewById(android.R.id.content).invalidate();
-    }
-
-    public void ReloadOnSettingsChanged() {
-        // Read Settings by Key
-        String prefBatteryKey = getString(R.string.pref_battery_key);
-        String prefFlightTimeKey = getString(R.string.pref_flightTime_key);
-        String prefAltitudeKey = getString(R.string.pref_altitude_key);
-        String prefTemperatureKey = getString(R.string.pref_temperature_key);
-        String prefVibrationKey = getString(R.string.pref_vibrate_key);
-
-        // Battery State
-        if (sPrefs.getBoolean(prefBatteryKey, true)) {
-            remainingBatteryTextView.setVisibility(View.VISIBLE);
-            findViewById(R.id.batteryImage).setVisibility(View.VISIBLE);
-        }
-        else {
-            remainingBatteryTextView.setVisibility(View.GONE);
-            findViewById(R.id.batteryImage).setVisibility(View.GONE);
-        }
-
-        // Remaining Flight TIme
-        if (sPrefs.getBoolean(prefFlightTimeKey, true)) {
-            remainingFlightTimeTextView.setVisibility(View.VISIBLE);
-            findViewById(R.id.remainingTimeImage).setVisibility(View.VISIBLE);
-        }
-        else {
-            remainingFlightTimeTextView.setVisibility(View.GONE);
-            findViewById(R.id.remainingTimeImage).setVisibility(View.GONE);
-        }
-
-        // Altitude
-        if (sPrefs.getBoolean(prefAltitudeKey, true)) {
-            altitudeTextView.setVisibility(View.VISIBLE);
-            findViewById(R.id.altitudeImage).setVisibility(View.VISIBLE);
-        }
-        else {
-            altitudeTextView.setVisibility(View.GONE);
-            findViewById(R.id.altitudeImage).setVisibility(View.GONE);
-        }
-
-        // Temperature
-        if (sPrefs.getBoolean(prefTemperatureKey, true)) {
-            temperatureTextView.setVisibility(View.VISIBLE);
-            findViewById(R.id.temperatureImage).setVisibility(View.VISIBLE);
-        }
-        else {
-            temperatureTextView.setVisibility(View.GONE);
-            findViewById(R.id.temperatureImage).setVisibility(View.GONE);
-        }
-
-        doVibrate = sPrefs.getBoolean(prefVibrationKey, true);
-    }
+    //endregion
 }
